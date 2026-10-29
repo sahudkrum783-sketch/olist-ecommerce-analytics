@@ -75,7 +75,7 @@ DIVIDE(
 
 ## 6. Dashboard Walkthrough & UX Design
 
-![Executive Dashboard](assets/your_image_name.png)
+![Executive Dashboard](assets/dashboard_preview2.png)
 
 * **Navigation Flow:** Designed using a strict Z-pattern hierarchy. Top row houses high-level KPIs (Revenue, Orders, SLA %). Middle section displays time-series trends and geographic mapping. Bottom section contains granular categorical matrixes for root-cause drill-downs.
 * **Key Interactive Features:** A geographic Filled Map (`customer_state`) and an RFM Bar Chart act as cross-filtering slicers. Clicking the $4.2M "At Risk" bar instantly filters the entire dashboard to show exactly where those lost customers live and what products drove them away.
