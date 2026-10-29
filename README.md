@@ -44,6 +44,8 @@ WITH order_financials AS (
 )
 -- Joined downstream to orders to maintain strict 1-row-per-order granularity
 
+
+```markdown
 ### Python: Handling E-Commerce Edge Cases in RFM
 Standard statistical binning (`pd.qcut`) crashes on Olist data because ~97% of users only purchase once (non-unique bin edges). I engineered a hybrid approach: quantiles for Recency/Monetary, and explicit business logic for Frequency.
 
@@ -57,10 +59,13 @@ def assign_f_score(freq):
     
 rfm['F_Score'] = rfm['frequency'].apply(assign_f_score)
 
-### DAX: Explicit SLA Tracking
-Instead of implicit averages, I wrote explicit DAX measures utilizing CALCULATE to dynamically filter context based on user dashboard interactions.
+```
 
-Code snippet
+### DAX: Explicit SLA Tracking
+
+Instead of implicit averages, I wrote explicit DAX measures utilizing `CALCULATE` to dynamically filter context based on user dashboard interactions.
+
+```dax
 Late Delivery Rate = 
 DIVIDE(
     CALCULATE([Total Orders], Fact_Orders[is_late_delivery] = 1),
@@ -68,25 +73,26 @@ DIVIDE(
     0
 )
 
-6. Dashboard Walkthrough & UX Design
-![Executive Dashboard](assets/your_image_name.png)
+```
 
-Navigation Flow: Designed using a strict Z-pattern hierarchy. Top row houses high-level KPIs (Revenue, Orders, SLA %). Middle section displays time-series trends and geographic mapping. Bottom section contains granular categorical matrixes for root-cause drill-downs.
+## 6. Dashboard Walkthrough & UX Design
 
-Key Interactive Features: A geographic Filled Map (customer_state) and an RFM Bar Chart act as cross-filtering slicers. Clicking the $4.2M "At Risk" bar instantly filters the entire dashboard to show exactly where those lost customers live and what products drove them away.
+* **Navigation Flow:** Designed using a strict Z-pattern hierarchy. Top row houses high-level KPIs (Revenue, Orders, SLA %). Middle section displays time-series trends and geographic mapping. Bottom section contains granular categorical matrixes for root-cause drill-downs.
+* **Key Interactive Features:** A geographic Filled Map (`customer_state`) and an RFM Bar Chart act as cross-filtering slicers. Clicking the $4.2M "At Risk" bar instantly filters the entire dashboard to show exactly where those lost customers live and what products drove them away.
 
-7. Challenges, Trade-offs & Lessons Learned
-Data Quality Issue (Multiple Reviews): Found that a small percentage of customers left multiple distinct reviews for a single order, which duplicated order rows in the SQL export. Resolution: Handled downstream in Python using .sort_values() by review score (to capture the worst-case sentiment) and .drop_duplicates(subset=['order_id']).
+## 7. Challenges, Trade-offs & Lessons Learned
 
-Language Barrier in NLP: Standard Python sentiment libraries (like VADER) are English-only and failed on Portuguese text. Resolution: Built a custom keyword-detection function matching Brazilian Portuguese stems (ótimo, péssimo) combined with the numeric star rating to accurately classify 96,000+ reviews without relying on a heavy machine learning model.
+* **Data Quality Issue (Multiple Reviews):** Found that a small percentage of customers left multiple distinct reviews for a single order, which duplicated order rows in the SQL export. *Resolution:* Handled downstream in Python using `.sort_values()` by review score (to capture the worst-case sentiment) and `.drop_duplicates(subset=['order_id'])`.
+* **Language Barrier in NLP:** Standard Python sentiment libraries (like VADER) are English-only and failed on Portuguese text. *Resolution:* Built a custom keyword-detection function matching Brazilian Portuguese stems (*ótimo*, *péssimo*) combined with the numeric star rating to accurately classify 96,000+ reviews without relying on a heavy machine learning model.
+* **Assumption Caveat:** The analysis sets a "Snapshot Date" of 1 day after the latest database entry to calculate Recency, rather than using `TODAY()`, to accurately reflect the historical nature of the dataset.
 
-Assumption Caveat: The analysis sets a "Snapshot Date" of 1 day after the latest database entry to calculate Recency, rather than using TODAY(), to accurately reflect the historical nature of the dataset.
+## 8. How to Reproduce
 
-8. How to Reproduce
-Database Setup: Run 01_schema_and_ingestion.sql in PostgreSQL to generate the tables, then import the raw Olist CSVs (available via Kaggle).
+1. **Database Setup:** Run `00_schema_and_ingestion.sql` in PostgreSQL to generate the tables, then import the raw Olist CSVs (available via Kaggle).
+2. **Data Extraction:** Run `00_master_analytical_view.sql` to generate the joined dataset. Export as `olist_master_dataset.csv`.
+3. **Python Processing:** Run `01_data_cleaning_and_nlp.ipynb` to execute text analysis and RFM segmentation. This outputs `olist_orders_cleaned.csv` and `olist_customers_rfm.csv`.
+4. **Power BI:** Open `02_executive_dashboard.pbix` to view the Star Schema data model and DAX measures.
 
-Data Extraction: Run 02_master_analytical_view.sql to generate the joined dataset. Export as olist_master_dataset.csv.
+```
 
-Python Processing: Run 03_cleaning_nlp_rfm.ipynb to execute text analysis and RFM segmentation. This outputs Fact_Orders and Dim_Customers.
-
-Power BI: Open 04_executive_dashboard.pbix to view the Star Schema data model and DAX measures.
+```
