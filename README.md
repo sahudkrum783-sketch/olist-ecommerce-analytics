@@ -43,9 +43,8 @@ WITH order_financials AS (
     GROUP BY order_id
 )
 -- Joined downstream to orders to maintain strict 1-row-per-order granularity
+```
 
-
-```markdown
 ### Python: Handling E-Commerce Edge Cases in RFM
 Standard statistical binning (`pd.qcut`) crashes on Olist data because ~97% of users only purchase once (non-unique bin edges). I engineered a hybrid approach: quantiles for Recency/Monetary, and explicit business logic for Frequency.
 
@@ -58,7 +57,6 @@ def assign_f_score(freq):
     return 1 if freq == 1 else (3 if freq == 2 else 5)
     
 rfm['F_Score'] = rfm['frequency'].apply(assign_f_score)
-
 ```
 
 ### DAX: Explicit SLA Tracking
